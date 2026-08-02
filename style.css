@@ -1,0 +1,875 @@
+/* ================================================================
+   VARIABLES GLOBALES — paleta romántica sobre galaxia negra
+   ================================================================ */
+:root{
+  --black:        #030109;
+  --void:         #06030f;
+  --violet-deep:  #1a0b2e;
+  --violet-glow:  #4a1d6b;
+  --pink:         #ff5da2;
+  --pink-soft:    #ff9ec9;
+  --pink-glow:    #ff2d78;
+  --gold:         #ffd76b;
+  --white:        #fdf7ff;
+  --text-dim:     #d8c9e8;
+  --font-script:  'Great Vibes', cursive;
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body:    'Quicksand', sans-serif;
+  /* Gradiente compartido: título "Te Amo" y mensajes en órbita usan el mismo color */
+  --title-gradient: linear-gradient(100deg, #fff2fa 0%, #ffb8dd 22%, #ff5da2 45%, #ff2d78 65%, #c65bff 85%, #ffb8dd 100%);
+}
+
+/* ================================================================
+   RESET Y BASE
+   ================================================================ */
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+html{ scroll-behavior:smooth; }
+
+body{
+  background:var(--black);
+  color:var(--white);
+  font-family:var(--font-body);
+  overflow-x:hidden;
+  cursor:default;
+}
+
+/* Barra de desplazamiento personalizada */
+::-webkit-scrollbar{ width:10px; }
+::-webkit-scrollbar-track{ background:var(--void); }
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(var(--pink-glow), var(--violet-glow));
+  border-radius:10px;
+  border:2px solid var(--void);
+}
+html{ scrollbar-color:var(--pink-glow) var(--void); scrollbar-width:thin; }
+
+/* Reducir movimiento si el usuario lo prefiere */
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+}
+
+/* ================================================================
+   FONDO DE GALAXIA (canvas + nebulosas CSS)
+   ================================================================ */
+#galaxy-canvas{
+  position:fixed; inset:0;
+  width:100%; height:100%;
+  z-index:0;
+  background:
+    radial-gradient(ellipse at 20% 20%, var(--violet-deep) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, #2a0e3f 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 100%, #10041f 0%, transparent 60%),
+    var(--black);
+}
+
+#nebula-layer{
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:
+    radial-gradient(circle at 15% 30%, rgba(255,93,162,0.10) 0%, transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(122,60,200,0.14) 0%, transparent 45%),
+    radial-gradient(circle at 70% 80%, rgba(255,45,120,0.08) 0%, transparent 40%),
+    radial-gradient(circle at 30% 90%, rgba(90,30,140,0.12) 0%, transparent 45%);
+  animation:nebula-drift 40s ease-in-out infinite alternate;
+}
+@keyframes nebula-drift{
+  0%  { transform:scale(1) translate(0,0); opacity:0.85; }
+  50% { transform:scale(1.12) translate(-2%, 1%); opacity:1; }
+  100%{ transform:scale(1.05) translate(2%, -1%); opacity:0.9; }
+}
+
+/* Capa de elementos flotantes (corazones, estrellas, snoopy, kitty, destellos) */
+#floaters-layer{
+  position:fixed; inset:0; z-index:2; pointer-events:none; overflow:hidden;
+}
+.floater{
+  position:absolute;
+  will-change:transform, opacity;
+  opacity:0;
+  animation-name:float-up, floater-fade;
+  animation-timing-function:ease-in-out, ease-in-out;
+  animation-iteration-count:infinite;
+}
+@keyframes float-up{
+  0%   { transform:translateY(10vh) translateX(0) rotate(0deg); }
+  50%  { transform:translateY(-45vh) translateX(20px) rotate(8deg); }
+  100% { transform:translateY(-100vh) translateX(-15px) rotate(-6deg); }
+}
+@keyframes floater-fade{
+  0%{ opacity:0; }
+  10%{ opacity:var(--f-op, 0.8); }
+  85%{ opacity:var(--f-op, 0.8); }
+  100%{ opacity:0; }
+}
+.floater--heart{ color:var(--pink); text-shadow:0 0 10px var(--pink-glow); }
+.floater--heart-glow{ color:var(--pink-soft); text-shadow:0 0 18px var(--pink-glow), 0 0 30px var(--pink-glow); }
+.floater--star{ color:var(--gold); text-shadow:0 0 8px var(--gold); }
+.floater--sparkle{ color:var(--white); text-shadow:0 0 10px var(--white); }
+.floater--img{ width:46px; height:46px; object-fit:contain; filter:drop-shadow(0 0 8px rgba(255,255,255,0.25)); }
+
+/* Chispas de clic */
+#sparkle-layer{ position:fixed; inset:0; z-index:60; pointer-events:none; }
+.click-spark{
+  position:absolute;
+  width:6px; height:6px;
+  border-radius:50%;
+  background:var(--pink-soft);
+  box-shadow:0 0 8px var(--pink-glow);
+  animation:spark-burst 0.7s ease-out forwards;
+}
+@keyframes spark-burst{
+  to{ transform:translate(var(--sx), var(--sy)) scale(0); opacity:0; }
+}
+
+/* ================================================================
+   SECCIONES / PANTALLAS
+   ================================================================ */
+.screen{
+  position:relative;
+  z-index:5;
+  min-height:100vh;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:6vh 6vw;
+  text-align:center;
+}
+
+/* ================================================================
+   PRIMER APARTADO — HERO
+   ================================================================ */
+/* Montañitas de noche decorativas, solo visibles en el hero */
+.hero__mountains{
+  position:absolute;
+  left:0; right:0; bottom:0;
+  width:100%;
+  height:min(42vh, 340px);
+  z-index:0;
+  overflow:hidden;
+  pointer-events:none;
+}
+.hero__mountains-svg{ width:100%; height:100%; display:block; }
+.hero__moon{ animation:glow-pulse 4s ease-in-out infinite; }
+.hero__mountains-stars circle{
+  fill:#fff;
+  animation:dot-twinkle 2.6s ease-in-out infinite;
+}
+.hero__mountains-stars circle:nth-child(2n){ animation-delay:0.6s; }
+.hero__mountains-stars circle:nth-child(3n){ animation-delay:1.2s; }
+
+.hero__content{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:22px;
+  animation:content-fade-in 1.4s ease both;
+}
+@keyframes content-fade-in{
+  from{ opacity:0; transform:translateY(24px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+.hero__title{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:clamp(2rem, 6vw, 3.6rem);
+  letter-spacing:0.02em;
+  color:var(--white);
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+  justify-content:center;
+  text-shadow:
+    0 0 12px rgba(255,158,201,0.65),
+    0 0 26px rgba(255,45,120,0.35);
+  animation:title-shimmer 4s ease-in-out infinite;
+}
+@keyframes title-shimmer{
+  0%,100%{ text-shadow:0 0 12px rgba(255,158,201,0.65), 0 0 26px rgba(255,45,120,0.35); }
+  50%{ text-shadow:0 0 20px rgba(255,158,201,0.95), 0 0 40px rgba(255,45,120,0.55); }
+}
+.sparkle-word{ animation:pulse-scale 2.4s ease-in-out infinite; display:inline-block; }
+@keyframes pulse-scale{
+  0%,100%{ transform:scale(1); }
+  50%{ transform:scale(1.15); }
+}
+
+.hero__gif-frame{
+  position:relative;
+  width:min(360px, 88vw);
+  aspect-ratio:auto;
+  animation:gif-zoom 6s ease-in-out infinite;
+}
+@keyframes gif-zoom{
+  0%,100%{ transform:scale(1); }
+  50%{ transform:scale(1.035); }
+}
+.hero__gif{ width:100%; height:auto; display:block; }
+.hero__gif-glow{
+  position:absolute; inset:-4px;
+  box-shadow:0 0 40px 6px rgba(255,93,162,0.4);
+  pointer-events:none;
+  animation:glow-pulse 3s ease-in-out infinite;
+}
+@keyframes glow-pulse{
+  0%,100%{ opacity:0.5; }
+  50%{ opacity:1; }
+}
+
+.hero__date{
+  font-family:var(--font-script);
+  font-size:clamp(1.8rem, 5vw, 2.6rem);
+  color:var(--pink-soft);
+  text-shadow:0 0 14px rgba(255,93,162,0.6);
+}
+
+/* Botón principal con latido */
+.btn-heartbeat{
+  margin-top:10px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:16px 34px;
+  border:none;
+  border-radius:60px;
+  font-family:var(--font-body);
+  font-weight:700;
+  font-size:1.05rem;
+  color:var(--white);
+  background:linear-gradient(135deg, #ff2d78, #ff7fb0);
+  box-shadow:0 0 20px rgba(255,45,120,0.6), 0 8px 24px rgba(255,45,120,0.25);
+  cursor:pointer;
+  animation:heartbeat 1.7s ease-in-out infinite;
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+}
+.btn-heartbeat:hover{
+  transform:scale(1.06);
+  box-shadow:0 0 34px rgba(255,45,120,0.85), 0 10px 28px rgba(255,45,120,0.35);
+}
+.btn-heartbeat:active{ transform:scale(0.96); }
+.btn-heartbeat__icon{ font-size:1.2rem; }
+@keyframes heartbeat{
+  0%, 100%{ transform:scale(1); }
+  15%{ transform:scale(1.08); }
+  30%{ transform:scale(1); }
+  45%{ transform:scale(1.08); }
+  60%{ transform:scale(1); }
+}
+
+.hero__scroll-hint{
+  margin-top:28px;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  font-size:0.78rem;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  opacity:0.7;
+}
+.hero__scroll-arrow{ animation:bounce-down 1.8s ease-in-out infinite; }
+@keyframes bounce-down{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(8px); }
+}
+
+/* ================================================================
+   SEGUNDO APARTADO — TE AMO
+   ================================================================ */
+.screen--love{
+  padding-top:10vh;
+  padding-bottom:8vh;
+  min-height:auto;
+}
+
+.love__title{
+  font-family:var(--font-script);
+  font-weight:400;
+  font-size:clamp(3.4rem, 11vw, 6rem);
+  letter-spacing:0.01em;
+  display:flex; align-items:center; gap:16px;
+  background:var(--title-gradient);
+  background-size:220% auto;
+  background-position:0% 50%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  filter:
+    drop-shadow(0 0 16px rgba(255,93,162,0.75))
+    drop-shadow(0 0 34px rgba(198,91,255,0.4));
+  animation:title-gradient-shift 5s ease-in-out infinite;
+}
+@keyframes title-gradient-shift{
+  0%,100%{ background-position:0% 50%; }
+  50%{ background-position:100% 50%; }
+}
+
+.love__subtitle{
+  font-family:var(--font-display);
+  font-style:italic;
+  font-size:clamp(0.95rem, 2.4vw, 1.2rem);
+  color:var(--text-dim);
+  max-width:520px;
+  margin:0 auto 10px;
+}
+
+/* ================================================================
+   UNIVERSO GIRATORIO — espiral, corazón y mensajes en órbita
+   ================================================================ */
+.universe-stage{
+  position:relative;
+  width:min(760px, 94vw);
+  aspect-ratio:4/3;
+  margin:20px auto 10px;
+  transform-style:preserve-3d;
+  touch-action:none;
+  cursor:grab;
+  transition:transform 0.9s cubic-bezier(.22,.9,.3,1.1), filter 0.9s ease;
+}
+.universe-stage:active{ cursor:grabbing; }
+.universe-stage.is-zooming{
+  transform:scale(3.2);
+  filter:brightness(1.6) saturate(1.3) blur(1px);
+}
+
+/* Polvo de estrellas disperso por todo el escenario — textura de fondo brillante */
+.stardust-layer{
+  position:absolute; inset:0;
+  z-index:1;
+  pointer-events:none;
+}
+.stardust-dot{
+  position:absolute;
+  border-radius:50%;
+  background:var(--pink-soft);
+  box-shadow:0 0 4px currentColor;
+  animation:dot-twinkle 3.4s ease-in-out infinite;
+}
+
+/* Brazos de espiral tipo galaxia — puntitos generados por JS. Se quedan quietos
+   (ya no giran); solo los mensajes en órbita se mueven con el arrastre. */
+.spiral-arms{
+  position:absolute;
+  left:50%; top:62%;
+  width:100%;
+  aspect-ratio:2.3/1;
+  transform:translate(-50%,-50%);
+  z-index:2;
+  pointer-events:none;
+  mix-blend-mode:screen;
+}
+.spiral-dot{
+  position:absolute;
+  border-radius:50%;
+  box-shadow:0 0 6px currentColor;
+}
+
+/* Núcleo tipo domo oscuro, con halo rosado — como el "agujero negro" de la imagen */
+.spiral-core{
+  position:absolute;
+  left:50%; top:64%;
+  width:15%;
+  aspect-ratio:1.7/1;
+  transform:translate(-50%,-42%);
+  border-radius:50% 50% 46% 46% / 62% 62% 38% 38%;
+  background:radial-gradient(ellipse at 50% 35%, #0c0210 0%, #000 70%);
+  box-shadow:
+    0 0 40px 10px rgba(255,45,120,0.55),
+    0 0 80px 26px rgba(255,45,120,0.28),
+    inset 0 -6px 14px rgba(255,93,162,0.35);
+  z-index:3;
+  pointer-events:none;
+}
+.spiral-core::after{
+  content:'';
+  position:absolute;
+  inset:-6% -4%;
+  border-radius:inherit;
+  border:1.5px solid rgba(255,158,201,0.55);
+  filter:blur(1px);
+  opacity:0.8;
+}
+
+/* Aros de brillo que envuelven al corazón — puntitos generados por JS
+   formando círculos concéntricos justo alrededor del corazón (no de todo
+   el escenario). Se quedan quietos, no giran. */
+.halo-rings{
+  position:absolute;
+  left:50%; top:27%;
+  width:48%;
+  aspect-ratio:1/1;
+  transform:translate(-50%,-50%);
+  z-index:3;
+  pointer-events:none;
+  mix-blend-mode:screen;
+}
+.halo-dot{
+  position:absolute;
+  border-radius:50%;
+  box-shadow:0 0 6px currentColor;
+}
+
+/* Estela de chispas que cae desde la punta del corazón hasta el núcleo */
+.heart-trail{
+  position:absolute;
+  left:50%; top:34%;
+  width:14%;
+  height:32%;
+  transform:translateX(-50%);
+  z-index:3;
+  pointer-events:none;
+  overflow:visible;
+}
+.trail-spark{
+  position:absolute;
+  top:0;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 8px var(--pink-glow), 0 0 4px #fff;
+  animation:trail-fall linear forwards;
+}
+@keyframes trail-fall{
+  0%{ transform:translateY(0) scale(1); opacity:0; }
+  12%{ opacity:1; }
+  100%{ transform:translateY(280%) scale(0.35); opacity:0; }
+}
+
+/* Corazón flotando arriba del universo — quieto en su sitio, pero palpita (late) sin desplazarse de arriba a abajo */
+.universe-heart{
+  position:absolute;
+  left:50%; top:2%;
+  width:38%;
+  min-width:150px;
+  transform:translateX(-50%);
+  transform-origin:center;
+  z-index:4;
+  pointer-events:none;
+  animation:heartbeat-big 1.6s ease-in-out infinite;
+}
+/* El rotor gira sobre su propio eje (vía JS). El contenedor de afuera
+   (.universe-heart) es quien aplica el latido (heartbeat-big), sin
+   desplazarse verticalmente. */
+.universe-heart__rotor{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  transition: transform 0.05s linear;
+}
+@keyframes heartbeat-big{
+  0%,100%{ transform:translateX(-50%) scale(1); }
+  20%{ transform:translateX(-50%) scale(1.06); }
+  40%{ transform:translateX(-50%) scale(1); }
+  60%{ transform:translateX(-50%) scale(1.06); }
+}
+.universe-heart__glow{
+  position:absolute; inset:-26%;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,93,162,0.42) 0%, rgba(255,45,120,0.18) 45%, transparent 72%);
+  filter:blur(3px);
+  animation:glow-pulse 2.2s ease-in-out infinite;
+  z-index:-1;
+}
+/* Destello central de 4 puntas, como el brillo que se ve en medio del corazón */
+.universe-heart__spark{
+  position:absolute;
+  left:52%; top:58%;
+  width:26px; height:26px;
+  transform:translate(-50%,-50%);
+  background:
+    linear-gradient(#fff, #fff) center/2px 100% no-repeat,
+    linear-gradient(90deg, #fff, #fff) center/100% 2px no-repeat;
+  filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 14px var(--pink-glow));
+  animation:spark-twinkle 2.4s ease-in-out infinite;
+}
+@keyframes spark-twinkle{
+  0%,100%{ opacity:0.4; transform:translate(-50%,-50%) scale(0.7) rotate(0deg); }
+  50%{ opacity:1; transform:translate(-50%,-50%) scale(1.15) rotate(20deg); }
+}
+/* Puntitos que forman la silueta del corazón, como en la imagen de referencia */
+.universe-heart__dots{ position:absolute; inset:0; }
+.heart-dot{
+  position:absolute;
+  border-radius:50%;
+  box-shadow:0 0 6px currentColor, 0 0 2px #fff;
+  animation:dot-twinkle 2.6s ease-in-out infinite;
+}
+.heart-dot--pink{ background:var(--pink); color:var(--pink-glow); }
+.heart-dot--gold{ background:var(--gold); color:var(--gold); box-shadow:0 0 8px var(--gold), 0 0 3px #fff; }
+.heart-dot--white{ background:#fff; color:#fff; box-shadow:0 0 10px #fff, 0 0 18px var(--pink-glow); }
+
+@keyframes dot-twinkle{
+  0%,100%{ opacity:0.5; transform:scale(0.8); }
+  50%{ opacity:1; transform:scale(1.25); }
+}
+/* Capa de órbita: mensajes y decoraciones distribuidos alrededor de la espiral */
+.orbit-layer{
+  position:absolute;
+  inset:0;
+  z-index:5;
+}
+.orbit-item{
+  position:absolute;
+  left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  white-space:nowrap;
+  transition:filter 0.25s ease;
+}
+
+/* Etiquetas de mensaje (texto que sigue la curva de la órbita) — sin recuadro */
+.orbit-tag{
+  cursor:pointer;
+  padding:4px 6px;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:0.85rem;
+  letter-spacing:0.04em;
+  background:var(--title-gradient);
+  background-size:220% auto;
+  background-position:0% 50%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  border:none;
+  filter:
+    drop-shadow(0 0 8px rgba(255,93,162,0.85))
+    drop-shadow(0 0 16px rgba(198,91,255,0.35));
+  animation:title-gradient-shift 6s ease-in-out infinite;
+  transition:transform 0.25s ease, filter 0.25s ease;
+}
+.orbit-tag:hover{
+  transform:scale(1.18);
+  filter:
+    drop-shadow(0 0 14px rgba(255,158,201,1))
+    drop-shadow(0 0 26px rgba(255,45,120,0.6));
+  z-index:9;
+}
+
+/* Íconos decorativos que orbitan (corazones, Snoopy, Hello Kitty) */
+.orbit-deco{ pointer-events:none; font-size:1.4rem; }
+.orbit-deco img{ width:34px; height:34px; object-fit:contain; filter:drop-shadow(0 0 8px rgba(255,255,255,0.3)); }
+
+.universe-hint{
+  margin-top:18px;
+  font-size:0.75rem;
+  letter-spacing:0.08em;
+  color:var(--text-dim);
+  opacity:0.6;
+  text-transform:uppercase;
+}
+
+/* El contenido del hero "sale disparado" hacia el universo al presionar el botón */
+.hero__content.is-launching{
+  animation:hero-launch 0.9s cubic-bezier(.16,.84,.3,1) forwards;
+}
+@keyframes hero-launch{
+  to{ transform:scale(2.6); opacity:0; filter:blur(5px); }
+}
+
+/* ================================================================
+   TRANSICIÓN "EL UNIVERSO SE EXPANDE" — al pulsar Ver mi mensaje
+   ================================================================ */
+.portal-overlay{
+  position:fixed; inset:0;
+  z-index:200;
+  pointer-events:none;
+  overflow:hidden;
+  background:transparent;
+}
+/* Esfera que nace en el botón y se expande cubriendo toda la pantalla,
+   simulando el nacimiento/expansión del universo */
+.universe-expand{
+  position:absolute;
+  width:14px; height:14px;
+  border-radius:50%;
+  transform:translate(-50%,-50%) scale(0);
+  background:radial-gradient(circle,
+    rgba(255,255,255,0.98) 0%,
+    rgba(255,225,245,0.9) 14%,
+    rgba(255,93,162,0.75) 32%,
+    rgba(255,45,120,0.5) 52%,
+    rgba(74,29,107,0.28) 72%,
+    transparent 85%);
+  box-shadow:0 0 80px 30px rgba(255,45,120,0.55);
+  will-change:transform, opacity;
+}
+.portal-flash{
+  position:absolute; inset:0;
+  background:radial-gradient(circle at var(--ox,50%) var(--oy,50%),
+    rgba(255,225,245,0.9) 0%,
+    rgba(255,93,162,0.55) 22%,
+    rgba(74,29,107,0.35) 45%,
+    transparent 70%);
+  opacity:0;
+  transition:opacity 0.6s ease;
+}
+.portal-flash.is-active{ opacity:1; }
+.portal-flash.is-fading{ opacity:0; transition:opacity 0.9s ease; }
+
+.portal-star{
+  position:absolute;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 6px #fff, 0 0 14px var(--pink-glow), 0 0 22px var(--pink-glow);
+}
+
+.page-footer{
+  margin-top:70px;
+  font-family:var(--font-script);
+  font-size:1.4rem;
+  color:var(--pink-soft);
+  text-shadow:0 0 12px rgba(255,93,162,0.5);
+}
+
+/* Lluvia de corazones al entrar a la segunda pantalla */
+.heart-rain{
+  position:fixed; top:-40px;
+  font-size:1.4rem;
+  color:var(--pink);
+  text-shadow:0 0 10px var(--pink-glow);
+  z-index:55;
+  pointer-events:none;
+  animation:rain-fall linear forwards;
+}
+@keyframes rain-fall{
+  to{ transform:translateY(110vh) rotate(360deg); opacity:0.2; }
+}
+
+/* ================================================================
+   MODAL
+   ================================================================ */
+.modal-overlay{
+  position:fixed; inset:0;
+  z-index:100;
+  display:flex;
+  align-items:center; justify-content:center;
+  background:rgba(3,1,9,0.78);
+  backdrop-filter:blur(6px);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.35s ease;
+  padding:20px;
+}
+.modal-overlay.is-open{ opacity:1; pointer-events:auto; }
+
+.modal-box{
+  position:relative;
+  max-width:480px;
+  width:100%;
+  padding:40px 32px 32px;
+  border-radius:22px;
+  text-align:center;
+  background:linear-gradient(160deg, rgba(26,11,46,0.95), rgba(6,3,15,0.97));
+  border:1px solid rgba(255,158,201,0.5);
+  box-shadow:0 0 50px rgba(255,45,120,0.35), 0 0 0 1px rgba(255,255,255,0.03) inset;
+  transform:scale(0.85) translateY(20px);
+  opacity:0;
+  transition:transform 0.4s cubic-bezier(.34,1.56,.64,1), opacity 0.4s ease;
+}
+.modal-overlay.is-open .modal-box{
+  transform:scale(1) translateY(0);
+  opacity:1;
+}
+.modal-box__close{
+  position:absolute; top:14px; right:16px;
+  width:34px; height:34px;
+  border-radius:50%;
+  border:1px solid rgba(255,158,201,0.4);
+  background:rgba(255,255,255,0.05);
+  color:var(--white);
+  font-size:1rem;
+  cursor:pointer;
+  z-index:2;
+  transition:background 0.25s ease, transform 0.25s ease;
+}
+.modal-box__close:hover{ background:rgba(255,93,162,0.3); transform:rotate(90deg); }
+
+/* Foto superior de la tarjeta (reemplaza la ruta en script.js) */
+.modal-box__photo{
+  position:relative;
+  width:100%;
+  aspect-ratio:16/10;
+  border-radius:16px;
+  overflow:hidden;
+  margin-bottom:20px;
+  background:radial-gradient(circle at center, rgba(255,93,162,0.25), rgba(6,3,15,0.9));
+  border:1px solid rgba(255,158,201,0.35);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 24px rgba(255,45,120,0.3) inset;
+}
+.modal-box__img{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:opacity 0.3s ease;
+}
+.modal-box__img[src=""]{ display:none; }
+.modal-box__photo-fallback{
+  font-size:2.6rem;
+  filter:drop-shadow(0 0 16px rgba(255,45,120,0.8));
+  animation:heartbeat-big 1.6s ease-in-out infinite;
+}
+.modal-box__heart-badge{
+  position:absolute;
+  top:-14px; left:50%;
+  transform:translateX(-50%);
+  font-size:1.4rem;
+  filter:drop-shadow(0 0 10px rgba(255,45,120,0.8));
+}
+
+.modal-box__title{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:1.4rem;
+  color:var(--white);
+  margin-bottom:10px;
+  text-shadow:0 0 12px rgba(255,93,162,0.5);
+}
+.modal-box__text{
+  font-family:var(--font-body);
+  font-weight:400;
+  font-size:1rem;
+  line-height:1.6;
+  color:var(--text-dim);
+}
+
+.modal-box__back{
+  margin-top:24px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 26px;
+  border:none;
+  border-radius:40px;
+  font-family:var(--font-body);
+  font-weight:700;
+  font-size:0.85rem;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--white);
+  background:linear-gradient(135deg, #ff2d78, #ff7fb0);
+  box-shadow:0 0 18px rgba(255,45,120,0.55);
+  cursor:pointer;
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+}
+.modal-box__back:hover{
+  transform:scale(1.06);
+  box-shadow:0 0 26px rgba(255,45,120,0.8);
+}
+.modal-box__back-icon{ animation:pulse-scale 1.8s ease-in-out infinite; display:inline-block; }
+
+/* ================================================================
+   BOTÓN DE MÚSICA
+   ================================================================ */
+.music-btn{
+  position:fixed;
+  bottom:24px; right:24px;
+  z-index:70;
+  width:56px; height:56px;
+  border-radius:50%;
+  border:none;
+  background:linear-gradient(135deg, #ff2d78, #6a2c9c);
+  color:var(--white);
+  font-size:1.4rem;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  box-shadow:0 0 20px rgba(255,45,120,0.55);
+  transition:transform 0.3s ease;
+}
+.music-btn:hover{ transform:scale(1.08); }
+.music-btn__icon{ position:relative; z-index:2; transition:transform 0.3s ease; }
+.music-btn.is-playing .music-btn__icon{ animation:spin-note 3s linear infinite; }
+@keyframes spin-note{ to{ transform:rotate(360deg); } }
+.music-btn__ring{
+  position:absolute; inset:-6px;
+  border-radius:50%;
+  border:2px solid rgba(255,158,201,0.6);
+  opacity:0;
+}
+.music-btn.is-playing .music-btn__ring{
+  animation:ring-pulse 1.6s ease-out infinite;
+}
+@keyframes ring-pulse{
+  0%{ transform:scale(0.8); opacity:0.8; }
+  100%{ transform:scale(1.5); opacity:0; }
+}
+
+/* ================================================================
+   CONTADOR DE ESTRELLAS
+   ================================================================ */
+.star-counter{
+  position:fixed;
+  top:18px; left:18px;
+  z-index:70;
+  display:flex; align-items:center; gap:8px;
+  padding:8px 14px;
+  border-radius:40px;
+  background:rgba(26,11,46,0.55);
+  border:1px solid rgba(255,215,107,0.35);
+  backdrop-filter:blur(6px);
+  font-size:0.78rem;
+  color:var(--text-dim);
+  box-shadow:0 0 14px rgba(255,215,107,0.15);
+}
+.star-counter__icon{ animation:pulse-scale 2s ease-in-out infinite; }
+.star-counter__value{ font-weight:700; color:var(--gold); }
+
+/* ================================================================
+   APARTADO — HASTA EN UN JUEGO TENEMOS NUESTRA PROPIA HISTORIA
+   ================================================================ */
+.our-story{
+  position:relative;
+  z-index:2;
+  max-width:640px;
+  margin:70px auto 20px;
+  padding:0 24px;
+  text-align:center;
+}
+.our-story__title{
+  font-family:var(--font-script);
+  font-size:clamp(1.9rem, 5vw, 2.6rem);
+  color:var(--pink-soft);
+  text-shadow:0 0 18px rgba(255,93,162,0.5);
+  margin:0 0 10px;
+}
+.our-story__text{
+  font-family:var(--font-display);
+  font-size:1.05rem;
+  color:var(--text-dim);
+  margin:0 0 28px;
+}
+.our-story__frame{
+  position:relative;
+  width:min(480px, 92%);
+  aspect-ratio:auto;
+  margin:0 auto;
+}
+.our-story__img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+.our-story__glow{
+  position:absolute;
+  inset:-20%;
+  background:radial-gradient(circle, rgba(255,93,162,0.28) 0%, transparent 70%);
+  filter:blur(10px);
+  z-index:-1;
+  pointer-events:none;
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width:600px){
+  .star-counter{ font-size:0.68rem; padding:6px 10px; gap:6px; }
+  .star-counter__label{ display:none; }
+  .music-btn{ width:48px; height:48px; bottom:16px; right:16px; }
+  .universe-stage{ width:98vw; aspect-ratio:4/5; }
+  .orbit-tag{ font-size:0.68rem; padding:5px 10px; }
+  .orbit-deco img{ width:26px; height:26px; }
+  .modal-box{ padding:30px 20px 26px; }
+}

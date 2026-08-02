@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Feliz Día de la Novia · Mi Pastelito</title>
+
+<!-- Tipografías: script romántica para acentos, serif elegante para títulos, sans suave para cuerpo -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============================================================ -->
+  <!-- FONDO GALÁCTICO: canvas para estrellas + nebulosas + parallax -->
+  <!-- ============================================================ -->
+  <canvas id="galaxy-canvas"></canvas>
+  <div id="nebula-layer" aria-hidden="true"></div>
+
+  <!-- Contenedor de elementos flotantes generados por JS (corazones, estrellas, snoopy, kitty, destellos) -->
+  <div id="floaters-layer" aria-hidden="true"></div>
+
+  <!-- Contenedor para chispas al hacer clic -->
+  <div id="sparkle-layer" aria-hidden="true"></div>
+
+  <!-- Contador de estrellas -->
+  <div class="star-counter" id="starCounter">
+    <span class="star-counter__icon">⭐</span>
+    <span class="star-counter__value" id="starCounterValue">0</span>
+    <span class="star-counter__label">estrellas encendidas por ti</span>
+  </div>
+
+  <!-- Botón flotante de música -->
+  <button id="musicToggle" class="music-btn" aria-label="Reproducir música">
+    <span class="music-btn__icon">🎵</span>
+    <span class="music-btn__ring"></span>
+  </button>
+  <audio id="bgMusic" loop preload="none">
+    <!-- Reemplaza esta ruta por tu archivo de música -->
+    <source src="audio/cancion.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- ============================================================ -->
+  <!-- PRIMER APARTADO — PANTALLA PRINCIPAL                          -->
+  <!-- ============================================================ -->
+  <section id="hero" class="screen">
+
+    <!-- Montañitas de noche: silueta decorativa con luna, solo en este apartado -->
+    <div class="hero__mountains" aria-hidden="true">
+      <svg class="hero__mountains-svg" viewBox="0 0 1000 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff6df" stop-opacity="0.95"/>
+            <stop offset="45%" stop-color="#ffd76b" stop-opacity="0.55"/>
+            <stop offset="100%" stop-color="#ffd76b" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="mtBack" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2a1246"/>
+            <stop offset="100%" stop-color="#160a2c"/>
+          </linearGradient>
+          <linearGradient id="mtMid" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1c0d33"/>
+            <stop offset="100%" stop-color="#0e0620"/>
+          </linearGradient>
+          <linearGradient id="mtFront" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0d0519"/>
+            <stop offset="100%" stop-color="#06030f"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Luna con halo -->
+        <circle class="hero__moon" cx="800" cy="70" r="90" fill="url(#moonGlow)"/>
+        <circle cx="800" cy="70" r="30" fill="#fff9ec"/>
+
+        <!-- Cordillera trasera -->
+        <path fill="url(#mtBack)" opacity="0.85" d="M0,200 L90,140 L170,190 L260,110 L350,180 L430,120 L520,195 L610,130 L700,185 L790,125 L880,190 L1000,140 L1000,320 L0,320 Z"/>
+
+        <!-- Cordillera media -->
+        <path fill="url(#mtMid)" d="M0,240 L120,170 L210,220 L310,150 L400,215 L500,160 L600,225 L700,165 L810,220 L900,175 L1000,215 L1000,320 L0,320 Z"/>
+
+        <!-- Cordillera frontal -->
+        <path fill="url(#mtFront)" d="M0,280 L150,210 L260,260 L360,200 L470,265 L580,205 L690,270 L800,215 L910,265 L1000,225 L1000,320 L0,320 Z"/>
+
+        <!-- Estrellitas sobre las montañas -->
+        <g class="hero__mountains-stars">
+          <circle cx="120" cy="60" r="2"/>
+          <circle cx="300" cy="40" r="1.6"/>
+          <circle cx="460" cy="80" r="2.2"/>
+          <circle cx="600" cy="30" r="1.5"/>
+          <circle cx="950" cy="60" r="1.8"/>
+          <circle cx="50" cy="110" r="1.4"/>
+          <circle cx="700" cy="50" r="1.6"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="hero__content">
+
+      <h1 class="hero__title" data-typing="true">
+        <span class="sparkle-word">💖</span>
+        Feliz Día de la Novia
+        <span class="sparkle-word">💖</span>
+      </h1>
+
+      <div class="hero__gif-frame">
+        <video class="hero__gif" src="video/nuestro-video.mp4" autoplay muted loop playsinline></video>
+        <span class="hero__gif-glow"></span>
+      </div>
+
+      <p class="hero__date">1 de Agosto</p>
+
+      <button id="revealBtn" class="btn-heartbeat">
+        <span class="btn-heartbeat__icon">💌</span>
+        <span>Ver mi mensaje</span>
+      </button>
+
+      <div class="hero__scroll-hint">
+        <span>desliza para descubrir más</span>
+        <span class="hero__scroll-arrow">↓</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SEGUNDO APARTADO — TE AMO + MENSAJES                          -->
+  <!-- ============================================================ -->
+  <section id="love" class="screen screen--love">
+
+    <h2 class="love__title">Te Amo</h2>
+    <p class="love__subtitle">Gira, explora y toca cada mensaje para descubrir por qué te amo, mi pastelito</p>
+
+    <!-- Universo giratorio: espiral + corazón + mensajes en órbita -->
+    <div class="universe-stage" id="universeStage">
+
+      <!-- Polvo de fondo disperso (textura de brillos sueltos) -->
+      <div class="stardust-layer" id="stardustLayer"></div>
+
+      <!-- Brazos de espiral tipo galaxia, generados con puntitos (JS) -->
+      <div class="spiral-arms" id="spiralArms"></div>
+
+      <!-- Núcleo oscuro tipo domo, con halo rosado -->
+      <div class="spiral-core"></div>
+
+      <!-- Aros de brillo que envuelven al corazón, como en la imagen de referencia -->
+      <div class="halo-rings" id="haloRings"></div>
+
+      <!-- Estela de chispas que cae del corazón hacia el núcleo -->
+      <div class="heart-trail" id="heartTrail"></div>
+
+      <!-- Corazón grande flotando sobre el universo, formado por puntitos brillantes -->
+      <div class="universe-heart">
+        <div class="universe-heart__rotor" id="heartRotor">
+          <span class="universe-heart__glow"></span>
+          <div class="universe-heart__dots" id="heartDots"></div>
+          <span class="universe-heart__spark"></span>
+        </div>
+      </div>
+
+      <!-- Anillo de mensajes y elementos decorativos girando -->
+      <div class="orbit-layer" id="orbitLayer">
+        <!-- Generado dinámicamente por script.js -->
+      </div>
+
+      <p class="universe-hint">✋ arrastra para girar el universo</p>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- APARTADO — HASTA EN UN JUEGO TENEMOS NUESTRA PROPIA HISTORIA  -->
+    <!-- ============================================================ -->
+    <div class="our-story">
+      <h2 class="our-story__title">Hasta en un juego tenemos nuestra propia historia</h2>
+      <p class="our-story__text">Porque cada detalle de esto, hasta el más pequeño, tiene un pedacito de nosotros.</p>
+      <div class="our-story__frame">
+        <video src="video/nuestro-video.mp4" class="our-story__img" autoplay muted loop playsinline></video>
+        <span class="our-story__glow"></span>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <p>Hecho con 💖 para mi pastelito</p>
+    </footer>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- MODAL DE MENSAJE                                              -->
+  <!-- ============================================================ -->
+  <div id="messageModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <button class="modal-box__close" id="modalClose" aria-label="Cerrar">✕</button>
+
+      <div class="modal-box__photo">
+        <img id="modalPhoto" src="" alt="" class="modal-box__img">
+        <span class="modal-box__photo-fallback">💗</span>
+        <span class="modal-box__heart-badge">💖</span>
+      </div>
+
+      <h3 class="modal-box__title" id="modalTitle"></h3>
+      <p class="modal-box__text" id="modalText"></p>
+
+      <button class="modal-box__back" id="modalBack">
+        <span>Volver</span> <span class="modal-box__back-icon">💌</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
