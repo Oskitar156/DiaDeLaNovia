@@ -8,6 +8,23 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   /* ============================================================
+     0. VIDEO SIN FONDO — Chrome/Firefox/Android usan WebM con
+        transparencia; Safari y iPhone no la soportan, así que
+        ahí se muestra la versión WebP animada (también transparente)
+     ============================================================ */
+  const ua = navigator.userAgent;
+  const isApple = /iP(hone|ad|od)/.test(ua) || (/Safari/.test(ua) && !/Chrome|Chromium|Edg|Android/.test(ua));
+  if (isApple){
+    document.querySelectorAll('video.cutout').forEach(v => {
+      const img = document.createElement('img');
+      img.src = 'video/nuestro-video.webp';
+      img.alt = 'Nosotros';
+      img.className = v.className;
+      v.replaceWith(img);
+    });
+  }
+
+  /* ============================================================
      1. FONDO DE GALAXIA — estrellas parpadeantes + parallax
      ============================================================ */
   const canvas = document.getElementById('galaxy-canvas');
@@ -78,15 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   // Rutas de imágenes reemplazables — coloca aquí tus propios archivos
-  const imageFloaters = [
-    'img/snoopy1.png',
-    'img/snoopy2.png',
-    'img/kitty1.png',
-    'img/kitty2.png'
-  ];
+  // (vacía mientras no existan; ej: 'img/snoopy1.png', 'img/kitty1.png')
+  const imageFloaters = [];
 
   function spawnFloater(){
-    const useImage = Math.random() < 0.28;
+    const useImage = imageFloaters.length > 0 && Math.random() < 0.28;
     const el = document.createElement(useImage ? 'img' : 'span');
     el.classList.add('floater');
 
@@ -254,176 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ============================================================
-     5. CORAZÓN DE PUNTITOS BRILLANTES (contorno fino tipo glitter)
-     ============================================================ */
-  const heartDotsLayer = document.getElementById('heartDots');
-
-  // Ecuación paramétrica del corazón: genera la silueta con puntitos
-  function heartXY(t){
-    const x = 16 * Math.pow(Math.sin(t), 3);
-    const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
-    return { x, y };
-  }
-
-  // Calculamos los límites reales de la curva para normalizar a 0–100%
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-  for (let i = 0; i <= 360; i++){
-    const { x, y } = heartXY((i / 360) * Math.PI * 2);
-    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-  }
-
-  function placeHeartDot(x, y, size, colorClass, opacity, delay){
-    const nx = (x - minX) / (maxX - minX);       // 0..1
-    const ny = (y - minY) / (maxY - minY);       // 0..1
-    const left = nx * 100;
-    const top = (1 - ny) * 100;                  // invertido: y matemático crece hacia arriba
-
-    const dot = document.createElement('span');
-    dot.className = `heart-dot ${colorClass}`;
-    dot.style.left = `${left}%`;
-    dot.style.top = `${top}%`;
-    dot.style.width = `${size}px`;
-    dot.style.height = `${size}px`;
-    dot.style.opacity = opacity;
-    dot.style.animationDelay = `${delay}s`;
-    heartDotsLayer.appendChild(dot);
-  }
-
-  // Contorno del corazón — puntitos MUY pegados a la curva (poco jitter) para
-  // que se vea como una línea fina de glitter, tal como en la imagen de referencia
-  const OUTLINE_DOTS = 340;
-  for (let i = 0; i < OUTLINE_DOTS; i++){
-    const t = (i / OUTLINE_DOTS) * Math.PI * 2;
-    const jitter = 0.965 + Math.random() * 0.05;
-    const { x, y } = heartXY(t);
-    const size = 1.6 + Math.random() * 2.6;
-    const roll = Math.random();
-    const colorClass = roll < 0.16 ? 'heart-dot--white' : 'heart-dot--pink';
-    placeHeartDot(x * jitter, y * jitter, size, colorClass, (0.75 + Math.random() * 0.25).toFixed(2), Math.random() * 2.6);
-  }
-
-  // Un halo muy sutil de polvo hacia el interior, apenas perceptible
-  // (da volumen sin convertir el corazón en una mancha sólida)
-  const FILL_DOTS = 36;
-  for (let i = 0; i < FILL_DOTS; i++){
-    const t = Math.random() * Math.PI * 2;
-    const inward = 0.55 + Math.random() * 0.4;
-    const { x, y } = heartXY(t);
-    const size = 1 + Math.random() * 1.4;
-    placeHeartDot(x * inward, y * inward, size, 'heart-dot--pink', (0.12 + Math.random() * 0.16).toFixed(2), Math.random() * 2.6);
-  }
-
-  /* ============================================================
-     5b. POLVO DE ESTRELLAS DE FONDO — textura dispersa por el escenario
-     ============================================================ */
-  const stardustLayer = document.getElementById('stardustLayer');
-  const STARDUST_COUNT = 130;
-  for (let i = 0; i < STARDUST_COUNT; i++){
-    const dot = document.createElement('span');
-    dot.className = 'stardust-dot';
-    const size = 1 + Math.random() * 1.8;
-    dot.style.left = `${Math.random() * 100}%`;
-    dot.style.top = `${Math.random() * 100}%`;
-    dot.style.width = `${size}px`;
-    dot.style.height = `${size}px`;
-    dot.style.opacity = (0.15 + Math.random() * 0.35).toFixed(2);
-    dot.style.animationDelay = `${Math.random() * 3}s`;
-    stardustLayer.appendChild(dot);
-  }
-
-  /* ============================================================
-     5c. BRAZOS DE ESPIRAL TIPO GALAXIA — puntitos a lo largo de
-         espirales logarítmicas, giran junto con los mensajes
-     ============================================================ */
-  const spiralArmsLayer = document.getElementById('spiralArms');
-  const ARM_COUNT = 3;
-  const POINTS_PER_ARM = 110;
-  const TOTAL_SWEEP = 430; // grados que recorre cada brazo
-
-  for (let a = 0; a < ARM_COUNT; a++){
-    const armOffset = (360 / ARM_COUNT) * a;
-    for (let i = 0; i < POINTS_PER_ARM; i++){
-      const t = i / POINTS_PER_ARM;               // 0 (centro) .. 1 (borde)
-      const angleDeg = armOffset + t * TOTAL_SWEEP;
-      const rad = (angleDeg * Math.PI) / 180;
-      const radius = 4 + Math.pow(t, 0.82) * 46;   // % del ancho del contenedor
-      const armSpread = (Math.random() - 0.5) * (3 + t * 6);
-      const x = 50 + Math.cos(rad) * (radius + armSpread);
-      const y = 50 + Math.sin(rad) * (radius + armSpread) * 0.42; // aplanado elíptico
-
-      const dot = document.createElement('span');
-      dot.className = 'spiral-dot';
-      const roll = Math.random();
-      const color = roll < 0.12 ? '#ffffff' : (roll < 0.24 ? 'var(--gold)' : 'var(--pink)');
-      const glow = roll < 0.12 ? '#ffffff' : 'var(--pink-glow)';
-      dot.style.background = color;
-      dot.style.color = glow;
-      const size = 1 + (1 - t) * 2.6 + Math.random() * 1.2;
-      dot.style.width = `${size}px`;
-      dot.style.height = `${size}px`;
-      dot.style.left = `${x}%`;
-      dot.style.top = `${y}%`;
-      dot.style.opacity = (0.25 + (1 - t) * 0.55 + Math.random() * 0.15).toFixed(2);
-      spiralArmsLayer.appendChild(dot);
-    }
-  }
-
-  /* ============================================================
-     5d. AROS QUE ENVUELVEN AL CORAZÓN — elipses concéntricas de
-         puntitos, como en la imagen de referencia
-     ============================================================ */
-  const haloRingsLayer = document.getElementById('haloRings');
-  const haloRingsConfig = [
-    { rx: 49, ry: 49, count: 100, size: [1.4, 3],   opacity: [0.55, 0.95] },
-    { rx: 36, ry: 36, count: 84,  size: [1.2, 2.4], opacity: [0.45, 0.8] },
-    { rx: 23, ry: 23, count: 68,  size: [1, 2],   opacity: [0.35, 0.6] }
-  ];
-  haloRingsConfig.forEach(ring => {
-    for (let i = 0; i < ring.count; i++){
-      const t = (i / ring.count) * Math.PI * 2;
-      const jitter = 0.94 + Math.random() * 0.1;
-      const x = 50 + Math.cos(t) * ring.rx * jitter;
-      const y = 50 + Math.sin(t) * ring.ry * jitter;
-      const dot = document.createElement('span');
-      dot.className = 'halo-dot';
-      const roll = Math.random();
-      const color = roll < 0.2 ? '#ffffff' : 'var(--pink)';
-      const glow = roll < 0.2 ? '#ffffff' : 'var(--pink-glow)';
-      dot.style.background = color;
-      dot.style.color = glow;
-      const size = ring.size[0] + Math.random() * (ring.size[1] - ring.size[0]);
-      dot.style.width = `${size}px`;
-      dot.style.height = `${size}px`;
-      dot.style.left = `${x}%`;
-      dot.style.top = `${y}%`;
-      dot.style.opacity = (ring.opacity[0] + Math.random() * (ring.opacity[1] - ring.opacity[0])).toFixed(2);
-      haloRingsLayer.appendChild(dot);
-    }
-  });
-
-  /* ============================================================
-     5e. ESTELA DE CHISPAS — cae desde la punta del corazón hasta
-         el núcleo, como en la imagen de referencia
-     ============================================================ */
-  const heartTrailLayer = document.getElementById('heartTrail');
-  function spawnTrailSpark(){
-    const spark = document.createElement('span');
-    spark.className = 'trail-spark';
-    const left = 40 + Math.random() * 20;
-    const size = 1.6 + Math.random() * 2.6;
-    const duration = 1.3 + Math.random() * 1.1;
-    spark.style.left = `${left}%`;
-    spark.style.width = `${size}px`;
-    spark.style.height = `${size}px`;
-    spark.style.animationDuration = `${duration}s`;
-    heartTrailLayer.appendChild(spark);
-    setTimeout(() => spark.remove(), duration * 1000 + 100);
-  }
-  setInterval(spawnTrailSpark, 70);
-  for (let i = 0; i < 14; i++) setTimeout(spawnTrailSpark, i * 60);
-
-  /* ============================================================
      6. MENSAJES DEDICADOS A ÁNGELA
      ============================================================ */
   const shortMessages = [
@@ -491,138 +334,9 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   /* ============================================================
-     6b. UNIVERSO GIRATORIO — mensajes y decoraciones en órbita
+     6b. UNIVERSO 3D — lo dibuja universe.js (Three.js)
      ============================================================ */
   const universeStage = document.getElementById('universeStage');
-  const orbitLayer = document.getElementById('orbitLayer');
-
-  // Elementos decorativos que orbitan junto a los mensajes (no clicables)
-  const decoFloaters = ['💗', '✨', '💫', 'img:kitty', 'img:snoopy', '💖'];
-
-  const orbitItems = []; // { el, angle, rx, ry, speedFactor }
-
-  function buildOrbit(){
-    orbitLayer.innerHTML = '';
-    orbitItems.length = 0;
-
-    const totalTags = shortMessages.length;
-    // Anillos bien separados para que los mensajes se vean dispersos,
-    // como capas concéntricas alrededor de la espiral.
-    const rings = [26, 42, 58, 74];
-    const perRing = Math.ceil(totalTags / rings.length);
-
-    shortMessages.forEach((text, index) => {
-      const ringIndex = index % rings.length;
-      const posInRing = Math.floor(index / rings.length);
-      const ringStagger = ringIndex * 22; // desfase angular entre anillos
-      const angle = (360 / perRing) * posInRing + ringStagger + (Math.random() * 10 - 5);
-
-      const rx = rings[ringIndex];
-      const ry = rx * 0.4;
-
-      const tag = document.createElement('div');
-      tag.className = 'orbit-item orbit-tag';
-      tag.textContent = text.replace('✨', '').trim();
-      tag.dataset.index = index;
-      tag.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openUniverseModal(index);
-      });
-
-      orbitLayer.appendChild(tag);
-      orbitItems.push({ el: tag, angle, rx, ry, cyOffset: 46 });
-    });
-
-    // Íconos decorativos flotando entre los anillos de mensajes
-    decoFloaters.forEach((deco, i) => {
-      const angle = (360 / decoFloaters.length) * i + 34;
-      const rx = 18 + (i % 2) * 32;
-      const ry = rx * 0.4;
-
-      const el = document.createElement('div');
-      el.className = 'orbit-item orbit-deco';
-
-      if (deco.startsWith('img:')){
-        const img = document.createElement('img');
-        const which = deco === 'img:kitty' ? 'img/kitty1.png' : 'img/snoopy1.png';
-        img.src = which;
-        img.alt = '';
-        img.addEventListener('error', () => { img.replaceWith(document.createTextNode('💞')); });
-        el.appendChild(img);
-      } else {
-        el.textContent = deco;
-      }
-
-      orbitLayer.appendChild(el);
-      orbitItems.push({ el, angle, rx, ry, cyOffset: 46 });
-    });
-  }
-
-  buildOrbit();
-
-  // Rotación continua + arrastre manual (mouse y touch)
-  let rotation = 0;
-  let isDragging = false;
-  let lastPointerX = 0;
-  const AUTO_SPEED = 0.045; // grados por frame
-
-  const spiralCore = document.querySelector('.spiral-core');
-  const spiralArms = document.getElementById('spiralArms');
-  const haloRings = document.getElementById('haloRings');
-
-  function renderOrbit(){
-    orbitItems.forEach(item => {
-      const rad = (item.angle + rotation) * Math.PI / 180;
-      const x = 50 + item.rx * Math.cos(rad);
-      const y = item.cyOffset + item.ry * Math.sin(rad);
-      // Los elementos más "atrás" (arriba) se ven más pequeños y tenues -> profundidad
-      const depth = (Math.sin(rad) + 1) / 2; // 0 (atrás) .. 1 (adelante)
-      const scale = 0.75 + depth * 0.4;
-      const opacity = 0.45 + depth * 0.55;
-      const z = Math.round(depth * 10);
-
-      item.el.style.left = `${x}%`;
-      item.el.style.top = `${y}%`;
-      item.el.style.transform = `translate(-50%, -50%) scale(${scale})`;
-      item.el.style.opacity = opacity.toFixed(2);
-      item.el.style.zIndex = z;
-    });
-
-    // La espiral, el núcleo y los aros se quedan quietos, y el corazón
-    // también permanece completamente estático (no gira, no se balancea).
-    // Lo único que se mueve automáticamente son los mensajes en órbita.
-  }
-
-  function animateUniverse(){
-    if (!isDragging) rotation += AUTO_SPEED;
-    renderOrbit();
-    requestAnimationFrame(animateUniverse);
-  }
-  requestAnimationFrame(animateUniverse);
-
-  function pointerDown(x){
-    isDragging = true;
-    lastPointerX = x;
-    universeStage.style.cursor = 'grabbing';
-  }
-  function pointerMove(x){
-    if (!isDragging) return;
-    const delta = x - lastPointerX;
-    rotation += delta * 0.35;
-    lastPointerX = x;
-  }
-  function pointerUp(){
-    isDragging = false;
-    universeStage.style.cursor = 'grab';
-  }
-
-  universeStage.addEventListener('mousedown', (e) => pointerDown(e.clientX));
-  window.addEventListener('mousemove', (e) => pointerMove(e.clientX));
-  window.addEventListener('mouseup', pointerUp);
-
-  universeStage.addEventListener('touchstart', (e) => pointerDown(e.touches[0].clientX), { passive:true });
-  universeStage.addEventListener('touchmove', (e) => pointerMove(e.touches[0].clientX), { passive:true });
-  universeStage.addEventListener('touchend', pointerUp);
 
   /* ============================================================
      7. MODAL DE MENSAJE — con efecto "expandir el universo"
@@ -662,6 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2) el universo vuelve a su tamaño normal
     universeStage.classList.remove('is-zooming');
   }
+
+  window.UNIVERSE = {
+    messages: shortMessages.map(m => m.replace('✨', '').trim()),
+    open: openUniverseModal
+  };
+  window.dispatchEvent(new Event('universe:ready'));
 
   modalClose.addEventListener('click', closeModal);
   modalBack.addEventListener('click', closeModal);

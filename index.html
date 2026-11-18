@@ -106,8 +106,10 @@
       </h1>
 
       <div class="hero__gif-frame">
-        <video class="hero__gif" src="video/nuestro-video.mp4" autoplay muted loop playsinline></video>
         <span class="hero__gif-glow"></span>
+        <video class="hero__gif cutout" autoplay muted loop playsinline aria-label="Nosotros">
+          <source src="video/nuestro-video.webm" type="video/webm">
+        </video>
       </div>
 
       <p class="hero__date">1 de Agosto</p>
@@ -134,37 +136,9 @@
 
     <!-- Universo giratorio: espiral + corazón + mensajes en órbita -->
     <div class="universe-stage" id="universeStage">
-
-      <!-- Polvo de fondo disperso (textura de brillos sueltos) -->
-      <div class="stardust-layer" id="stardustLayer"></div>
-
-      <!-- Brazos de espiral tipo galaxia, generados con puntitos (JS) -->
-      <div class="spiral-arms" id="spiralArms"></div>
-
-      <!-- Núcleo oscuro tipo domo, con halo rosado -->
-      <div class="spiral-core"></div>
-
-      <!-- Aros de brillo que envuelven al corazón, como en la imagen de referencia -->
-      <div class="halo-rings" id="haloRings"></div>
-
-      <!-- Estela de chispas que cae del corazón hacia el núcleo -->
-      <div class="heart-trail" id="heartTrail"></div>
-
-      <!-- Corazón grande flotando sobre el universo, formado por puntitos brillantes -->
-      <div class="universe-heart">
-        <div class="universe-heart__rotor" id="heartRotor">
-          <span class="universe-heart__glow"></span>
-          <div class="universe-heart__dots" id="heartDots"></div>
-          <span class="universe-heart__spark"></span>
-        </div>
-      </div>
-
-      <!-- Anillo de mensajes y elementos decorativos girando -->
-      <div class="orbit-layer" id="orbitLayer">
-        <!-- Generado dinámicamente por script.js -->
-      </div>
-
-      <p class="universe-hint">✋ arrastra para girar el universo</p>
+      <canvas id="universeCanvas" aria-hidden="true"></canvas>
+      <div class="u-labels" id="uLabels"></div>
+      <p class="universe-hint">✋ arrastra para girar · toca un mensaje 💌</p>
     </div>
 
     <!-- ============================================================ -->
@@ -174,7 +148,9 @@
       <h2 class="our-story__title">Hasta en un juego tenemos nuestra propia historia</h2>
       <p class="our-story__text">Porque cada detalle de esto, hasta el más pequeño, tiene un pedacito de nosotros.</p>
       <div class="our-story__frame">
-        <video src="video/nuestro-video.mp4" class="our-story__img" autoplay muted loop playsinline></video>
+        <video class="our-story__img cutout" autoplay muted loop playsinline aria-label="Nosotros">
+          <source src="video/nuestro-video.webm" type="video/webm">
+        </video>
         <span class="our-story__glow"></span>
       </div>
     </div>
@@ -207,5 +183,6 @@
   </div>
 
   <script src="script.js"></script>
+  <script type="module" src="universe.js"></script>
 </body>
 </html>

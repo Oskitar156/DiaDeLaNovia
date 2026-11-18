@@ -873,3 +873,101 @@ html{ scrollbar-color:var(--pink-glow) var(--void); scrollbar-width:thin; }
   .orbit-deco img{ width:26px; height:26px; }
   .modal-box{ padding:30px 20px 26px; }
 }
+
+/* ================================================================
+   UNIVERSO 3D (universe.js) — reemplaza al universo anterior
+   ================================================================ */
+.universe-stage{
+  position:relative;
+  width:100%; max-width:none;
+  height:min(88vh, 860px); min-height:520px;
+  aspect-ratio:auto;
+  margin:6px 0 0;
+  overflow:hidden;
+  touch-action:pan-y;
+  cursor:grab;
+  -webkit-mask-image:radial-gradient(ellipse 72% 64% at 50% 50%, #000 62%, transparent 100%);
+          mask-image:radial-gradient(ellipse 72% 64% at 50% 50%, #000 62%, transparent 100%);
+}
+.universe-stage.is-dragging{ cursor:grabbing; }
+#universeCanvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+.u-labels{ position:absolute; inset:0; pointer-events:none; }
+
+.u-label{
+  position:absolute; left:0; top:0;
+  pointer-events:auto; cursor:pointer;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 16px 8px 12px;
+  border-radius:999px;
+  font-family:'Cormorant Garamond', serif; font-size:1.06rem; font-weight:600; font-style:italic;
+  letter-spacing:.01em; white-space:nowrap; color:#fff2f8;
+  background:linear-gradient(135deg, rgba(255,70,150,.22), rgba(140,90,255,.16));
+  border:1px solid rgba(255,190,225,.45);
+  box-shadow:0 0 18px rgba(255,60,140,.35), inset 0 0 12px rgba(255,255,255,.08);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  text-shadow:0 0 10px rgba(255,120,180,.8);
+  transition:background .25s, box-shadow .25s, border-color .25s;
+  will-change:transform, opacity;
+}
+.u-label__dot{
+  width:7px; height:7px; border-radius:50%; flex:none;
+  background:#fff; box-shadow:0 0 6px #fff, 0 0 14px #ff5fa2, 0 0 22px #ff2d78;
+  animation:uDot 1.8s ease-in-out infinite;
+}
+@keyframes uDot{ 50%{ transform:scale(1.6); opacity:.7; } }
+.u-label:hover{
+  background:linear-gradient(135deg, rgba(255,70,150,.5), rgba(160,100,255,.38));
+  border-color:#ffd1e8;
+  box-shadow:0 0 28px rgba(255,80,160,.75), 0 0 60px rgba(255,45,120,.35), inset 0 0 14px rgba(255,255,255,.15);
+}
+.u-label.is-back{ pointer-events:none; }
+
+.u-spark{
+  position:absolute; width:6px; height:6px; margin:-3px 0 0 -3px; border-radius:50%; z-index:200; pointer-events:none;
+  background:#fff; box-shadow:0 0 8px #fff, 0 0 16px #ff5fa2;
+  animation:uSpark .85s cubic-bezier(.2,.8,.3,1) forwards;
+}
+@keyframes uSpark{ to{ transform:translate(var(--dx), var(--dy)) scale(.2); opacity:0; } }
+
+.universe-stage .universe-hint{
+  position:absolute; left:50%; bottom:7%; transform:translateX(-50%);
+  margin:0; z-index:150; pointer-events:none; white-space:nowrap;
+  padding:7px 16px; border-radius:999px;
+  background:rgba(20,6,26,.45); border:1px solid rgba(255,180,220,.18);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  opacity:.85;
+}
+
+/* Sin WebGL: los mensajes quedan como una nube de estrellas */
+.u-fallback{ height:auto; min-height:0; padding:40px 16px; }
+.u-fallback .u-labels{ position:static; display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+.u-fallback .u-label{ position:static; }
+
+@media (max-width:640px){
+  .universe-stage{ height:min(82vh, 720px); min-height:480px; }
+  .u-label{ font-size:.92rem; padding:6px 12px 6px 9px; gap:6px; }
+  .universe-stage{
+    -webkit-mask-image:linear-gradient(180deg, transparent 0, #000 8%, #000 90%, transparent 100%);
+            mask-image:linear-gradient(180deg, transparent 0, #000 8%, #000 90%, transparent 100%);
+  }
+  .universe-stage .universe-hint{ font-size:.62rem; padding:6px 12px; bottom:4%; }
+}
+
+/* ================================================================
+   VIDEO SIN FONDO — la pareja flota sobre el universo
+   ================================================================ */
+.hero__gif-frame{ width:min(440px, 92vw); }
+.cutout{
+  -webkit-mask-image:linear-gradient(180deg, #000 78%, transparent 100%);
+          mask-image:linear-gradient(180deg, #000 78%, transparent 100%);
+  position:relative; z-index:1;
+}
+.hero__gif-glow{
+  inset:8% 4% 0;
+  box-shadow:none;
+  border-radius:50%;
+  background:radial-gradient(closest-side, rgba(255,93,162,.38), rgba(140,70,255,.16) 60%, transparent 100%);
+  filter:blur(18px);
+  z-index:0;
+}
+.our-story__frame{ width:min(560px, 96%); }
